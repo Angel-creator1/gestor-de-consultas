@@ -10,7 +10,7 @@ def item_list(request):
     context = {
         'item_list': items
     }
-    return render(request, 'Item/items.html', context)
+    return render(request, 'items/items.html', context)
 
 def item_create(request):
     if request.method == 'POST':
@@ -27,4 +27,4 @@ def item_create(request):
     context = {
         'form': form,
     }
-    return render(request, 'Item/itemCreate.html', context)
+    return render(request, 'items/itemCreate.html', context)
