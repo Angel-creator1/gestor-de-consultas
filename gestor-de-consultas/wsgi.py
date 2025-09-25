@@ -1,5 +1,5 @@
 """
-WSGI config for monitoring project.
+WSGI config for gestor-de-consultas project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,7 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "monitoring.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gestor-de-consultas.settings")
 
 application = get_wsgi_application()
+
