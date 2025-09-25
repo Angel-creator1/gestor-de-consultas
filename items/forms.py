@@ -1,9 +1,9 @@
 from django import forms
-from .models import Variable
+from .models import Item
 
-class VariableForm(forms.ModelForm):
+class ItemForm(forms.ModelForm):
     class Meta:
-        model = Variable
+        model = Item
         fields = [
             'name',
         ]
