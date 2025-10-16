@@ -132,3 +132,11 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'static', 'media')
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
+# settings.py (fragmento)
+RABBIT_HOST = 'localhost'           # o la IP/host real
+RABBIT_USER = 'monitoring_user'
+RABBIT_PASSWORD = 'isis2503'
+RABBIT_EXCHANGE = 'monitoring_measurements'
+RABBIT_EXCHANGE_TYPE = 'topic'      # 'topic' o 'fanout' según tu necesidad
+RABBIT_ROUTING_KEY = 'ML.505.Temperature'  # ejemplo por defecto
+
