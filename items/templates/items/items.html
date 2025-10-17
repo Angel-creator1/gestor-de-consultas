@@ -27,6 +27,9 @@
                         <tr style="color:#0E2EB0">
                             <th>Pedido</th>
                         </tr>
+                        <tr style="color:#c63140">
+                            <th>Estado</th>
+                        </tr>
                         </thead>
                         <tbody>
 
@@ -35,7 +38,11 @@
                             <td>{{ item.name }}</td>
                         </tr>
                         {% endfor %}
-
+                        {% for item in item_list %}
+                        <tr>
+                            <td>{{ item.state }}</td>
+                        </tr>
+                        {% endfor %}
                         </tbody>
                     </table>
 

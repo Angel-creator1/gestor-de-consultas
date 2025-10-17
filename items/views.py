@@ -38,6 +38,7 @@ def item_create(request):
                 # intenta extraer los campos más comunes; adapta los nombres a tu modelo
                 payload_data['id'] = getattr(item, 'id', None)
                 payload_data['name'] = getattr(item, 'name', None)
+                payload_data['state'] = getattr(item, 'state', None)
                 # si tienes campos de usuario/creator:
                 creator = getattr(item, 'created_by', None) or getattr(item, 'creator', None)
                 payload_data['created_by'] = str(creator) if creator is not None else None
@@ -49,6 +50,7 @@ def item_create(request):
                 # extrae campos seguros que existan
                 payload_data['id'] = cd.get('id') if 'id' in cd else None
                 payload_data['name'] = cd.get('name') if 'name' in cd else cd.get('titulo') if 'titulo' in cd else None
+                payload_data['state'] = cd.get('state')
                 payload_data['created_by'] = cd.get('created_by') if 'created_by' in cd else None
                 # añade demás campos según tu formulario
 
