@@ -8,10 +8,10 @@ import json
 import os
 import pika
 from django.conf import settings
-from django.shortcuts import render, reverse, HttpResponseRedirect
-from django.contrib import messages
-from .forms import ItemForm
-from .logic import create_item 
+
+
+
+
 
 def item_list(request):
     items = get_items()
@@ -57,7 +57,7 @@ def item_create(request):
 
             # --- PUBLICAR EN RABBITMQ
             # Lee configuración desde settings o variables de entorno
-            rabbit_host = getattr(settings, "RABBIT_HOST", os.environ.get("RABBIT_HOST", "127.0.0.1"))
+            rabbit_host = getattr(settings, "RABBIT_HOST", os.environ.get("RABBIT_HOST", "172.31.22.207"))
             rabbit_user = getattr(settings, "RABBIT_USER", os.environ.get("RABBIT_USER", "monitoring_user"))
             rabbit_password = getattr(settings, "RABBIT_PASSWORD", os.environ.get("RABBIT_PASSWORD", "isis2503"))
             exchange = getattr(settings, "RABBIT_EXCHANGE", os.environ.get("RABBIT_EXCHANGE", "monitoring_measurements"))
