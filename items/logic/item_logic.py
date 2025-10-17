@@ -5,6 +5,8 @@ def get_items():
     return queryset
 
 def create_item(form):
+    # Si form es un ModelForm, form.save() ya persiste la instancia.
     item = form.save()
-    item.save()
-    return ()
+    # No es necesario llamar otra vez a item.save() salvo que hayas usado commit=False
+    return item
+
