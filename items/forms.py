@@ -4,9 +4,5 @@ from .models import Item
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = [
-            'name',
-        ]
-        labels = {
-            'name': 'Name',
-        }
+        fields = ['name', 'state']   # incluye state para que aparezca en el formulario
+
