@@ -8,6 +8,60 @@ import json
 import os
 import pika
 from django.conf import settings
+import json
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+
+from .models import Item
+
+@csrf_exempt
+def item_update_state(request, pk):
+    """
+    Endpoint para actualizar solo el campo `state` de un Item.
+    - URL ejemplo: PUT /items/12/state/
+    - Body JSON: {"state": "in_progress"}
+    """
+
+    # Aceptamos únicamente PUT (también permito POST por conveniencia si algún cliente no puede usar PUT)
+    if request.method not in ("PUT", "POST"):
+        return HttpResponseNotAllowed(["PUT", "POST"])
+
+    # parsear JSON del cuerpo
+    try:
+        body = request.body.decode('utf-8')
+        if not body:
+            return HttpResponseBadRequest("Request body vacío. Enviar JSON con {'state': '<valor>'}.")
+        data = json.loads(body)
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido en el cuerpo de la petición.")
+
+    new_state = data.get('state')
+    if new_state is None:
+        return HttpResponseBadRequest("Falta el campo 'state' en el JSON.")
+
+    # obtener el item (404 si no existe)
+    item = get_object_or_404(Item, pk=pk)
+
+    # validación opcional: si tu modelo tiene STATE_CHOICES, validamos el valor
+    valid_states = None
+    if hasattr(Item, 'STATE_CHOICES'):
+        # crear set de valores válidos
+        valid_states = {choice[0] for choice in Item.STATE_CHOICES}
+    if valid_states is not None and new_state not in valid_states:
+        return HttpResponseBadRequest(f"Estado inválido. Valores válidos: {sorted(valid_states)}")
+
+    # actualizar y guardar
+    item.state = new_state
+    item.save()
+
+    # respuesta con el item actualizado (puedes serializar más campos si quieres)
+    response_data = {
+        'id': item.id,
+        'name': item.name,
+        'state': item.state,
+    }
+    return JsonResponse(response_data, status=200)
 
 
 

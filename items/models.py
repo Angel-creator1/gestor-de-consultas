@@ -1,8 +1,8 @@
 from django.db import models
 
 class Item(models.Model):
-    STATE_VERIFIED = 'new'
-    STATE_IN_PROGRESS = 'in_progress'
+    STATE_VERIFIED = 'Verificado'
+    STATE_IN_PROGRESS = 'Alistamiento'
 
     STATE_CHOICES = [
         (STATE_VERIFIED, 'Verificado'),
