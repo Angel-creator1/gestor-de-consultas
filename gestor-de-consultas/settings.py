@@ -132,5 +132,13 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'static', 'media')
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
+import os
+
+# RabbitMQ (valores por defecto para desarrollo; cámbialos en producción)
+RABBIT_HOST = os.environ.get("RABBIT_HOST", "172.31.22.207")
+RABBIT_USER = os.environ.get("RABBIT_USER", "monitoring_user")
+RABBIT_PASSWORD = os.environ.get("RABBIT_PASSWORD", "isis2503")
+RABBIT_EXCHANGE = os.environ.get("RABBIT_EXCHANGE", "monitoring_measurements")
+RABBIT_ROUTING_KEY = os.environ.get("RABBIT_ROUTING_KEY", "ML.505.Item")
 
 
