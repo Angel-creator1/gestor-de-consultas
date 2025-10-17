@@ -18,16 +18,12 @@ from .models import Item
 @csrf_exempt
 def item_update_state(request, pk):
     """
-    Endpoint para actualizar solo el campo `state` de un Item.
-    - URL ejemplo: PUT /items/12/state/
-    - Body JSON: {"state": "in_progress"}
+    PUT /items/<pk>/state/  body JSON: {"state": "<nuevo_estado>"}
+    Actualiza el state y publica un mensaje en RabbitMQ con la actualización.
     """
-
-    # Aceptamos únicamente PUT (también permito POST por conveniencia si algún cliente no puede usar PUT)
     if request.method not in ("PUT", "POST"):
         return HttpResponseNotAllowed(["PUT", "POST"])
 
-    # parsear JSON del cuerpo
     try:
         body = request.body.decode('utf-8')
         if not body:
@@ -40,29 +36,82 @@ def item_update_state(request, pk):
     if new_state is None:
         return HttpResponseBadRequest("Falta el campo 'state' en el JSON.")
 
-    # obtener el item (404 si no existe)
     item = get_object_or_404(Item, pk=pk)
 
-    # validación opcional: si tu modelo tiene STATE_CHOICES, validamos el valor
+    # Validación opcional según STATE_CHOICES si existen
     valid_states = None
     if hasattr(Item, 'STATE_CHOICES'):
-        # crear set de valores válidos
         valid_states = {choice[0] for choice in Item.STATE_CHOICES}
     if valid_states is not None and new_state not in valid_states:
         return HttpResponseBadRequest(f"Estado inválido. Valores válidos: {sorted(valid_states)}")
 
-    # actualizar y guardar
+    old_state = item.state
     item.state = new_state
     item.save()
 
-    # respuesta con el item actualizado (puedes serializar más campos si quieres)
+    # Preparar payload para publicar
+    payload = {
+        'action': 'state_updated',
+        'model': 'Item',
+        'data': {
+            'id': item.id,
+            'name': item.name,
+            'old_state': old_state,
+            'new_state': new_state,
+        }
+    }
+
+    # --- PUBLICAR EN RABBITMQ (import perezoso)
+    try:
+        import pika
+    except ImportError:
+        # pika no instalado: devolvemos la respuesta pero avisamos en el JSON (no interrumpimos)
+        response_data = {
+            'id': item.id,
+            'name': item.name,
+            'state': item.state,
+            'rabbitmq': 'pika no instalado, mensaje no publicado'
+        }
+        return JsonResponse(response_data, status=200)
+
+    # Leer configuración desde settings o variables de entorno
+    rabbit_host = getattr(settings, "RABBIT_HOST", os.environ.get("RABBIT_HOST", "127.0.0.1"))
+    rabbit_user = getattr(settings, "RABBIT_USER", os.environ.get("RABBIT_USER", "monitoring_user"))
+    rabbit_password = getattr(settings, "RABBIT_PASSWORD", os.environ.get("RABBIT_PASSWORD", "isis2503"))
+    exchange = getattr(settings, "RABBIT_EXCHANGE", os.environ.get("RABBIT_EXCHANGE", "monitoring_measurements"))
+    # routing key específico para actualizaciones de estado (ajústalo si quieres)
+    routing_key = getattr(settings, "RABBIT_ROUTING_KEY_STATE", os.environ.get("RABBIT_ROUTING_KEY_STATE", "ML.505.Item.State"))
+
+    connection = None
+    published = False
+    error_msg = None
+    try:
+        credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
+        params = pika.ConnectionParameters(host=rabbit_host, credentials=credentials)
+        connection = pika.BlockingConnection(params)
+        channel = connection.channel()
+        channel.exchange_declare(exchange=exchange, exchange_type='topic', durable=False)
+
+        body = json.dumps(payload)
+        channel.basic_publish(exchange=exchange, routing_key=routing_key, body=body)
+        published = True
+    except Exception as e:
+        error_msg = str(e)
+        # no lanzamos excepción al cliente; simplemente lo retornamos en la respuesta
+    finally:
+        try:
+            if connection and not connection.is_closed:
+                connection.close()
+        except Exception:
+            pass
+
     response_data = {
         'id': item.id,
         'name': item.name,
         'state': item.state,
+        'rabbitmq': 'published' if published else f'failed: {error_msg}'
     }
     return JsonResponse(response_data, status=200)
-
 
 
 def item_create(request):
